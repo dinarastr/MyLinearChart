@@ -1,37 +1,30 @@
 package ru.dinarastepina.myapplication.presentation.linearChart
 
-import android.animation.TimeInterpolator
-import android.content.Context
-import android.content.res.Resources
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.LinearInterpolator
-import androidx.annotation.ColorInt
 import androidx.fragment.app.Fragment
-import com.scichart.charting.model.RenderableSeriesCollection
-import com.scichart.charting.model.dataSeries.XyDataSeries
-import com.scichart.charting.modifiers.IChartModifier
-import com.scichart.charting.visuals.SciChartSurface
 import com.scichart.charting.visuals.axes.AutoRange
-import com.scichart.charting.visuals.axes.DateAxis
-import com.scichart.charting.visuals.axes.IAxis
-import com.scichart.charting.visuals.axes.NumericAxis
-import com.scichart.charting.visuals.renderableSeries.FastLineRenderableSeries
-import com.scichart.charting.visuals.renderableSeries.XyRenderableSeriesBase
-import com.scichart.core.framework.ISuspendable
-import com.scichart.core.framework.UpdateSuspender
-import com.scichart.core.observable.ObservableCollection
 import com.scichart.data.model.DoubleRange
-import com.scichart.drawing.common.SolidPenStyle
-import com.scichart.extensions.builders.AnimatorBuilderBase
 import com.scichart.extensions.builders.SciChartBuilder
+import ru.dinarastepina.myapplication.MyChartApp
 import ru.dinarastepina.myapplication.databinding.FragmentLinearChartBinding
+import ru.dinarastepina.myapplication.presentation.ViewModelFactory
+import ru.dinarastepina.myapplication.presentation.utils.SolidPenStyle
+import ru.dinarastepina.myapplication.presentation.utils.XyDataSeries
+import ru.dinarastepina.myapplication.presentation.utils.fastLineRenderableSeries
+import ru.dinarastepina.myapplication.presentation.utils.numericAxis
+import ru.dinarastepina.myapplication.presentation.utils.renderableSeries
+import ru.dinarastepina.myapplication.presentation.utils.suspendUpdates
+import ru.dinarastepina.myapplication.presentation.utils.xAxes
+import ru.dinarastepina.myapplication.presentation.utils.yAxes
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import androidx.fragment.app.*
+import androidx.lifecycle.lifecycleScope
+import javax.inject.Inject
 import kotlin.math.sin
 
 class LinearChartFragment : Fragment() {
@@ -39,6 +32,14 @@ class LinearChartFragment : Fragment() {
     private var _vb: FragmentLinearChartBinding? = null
     private val vb: FragmentLinearChartBinding
         get() = _vb!!
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+    private val component by lazy {
+        (requireActivity().application as MyChartApp).component
+    }
+
+    private val vm: LinearChartVM by viewModels { viewModelFactory }
 
     private val ds1 = XyDataSeries<Double, Double>().apply { seriesName = "Orange Series"; fifoCapacity = FIFO_CAPACITY }
     private val scheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
@@ -70,7 +71,8 @@ class LinearChartFragment : Fragment() {
                 growBy = DoubleRange(0.1, 0.1)
             }}
             renderableSeries {
-                fastLineRenderableSeries { dataSeries = ds1; strokeStyle = SolidPenStyle(0xFFe97064, 2f) }
+                fastLineRenderableSeries {
+                    dataSeries = ds1; strokeStyle = SolidPenStyle(0xFFe97064, 2f) }
             }
         }
         schedule = scheduledExecutorService.scheduleWithFixedDelay(insertRunnable, 0, TIME_INTERVAL, TimeUnit.MILLISECONDS)
@@ -97,78 +99,3 @@ class LinearChartFragment : Fragment() {
     }
 }
 
-fun SciChartSurface.chartModifiers(init: CollectionContext<IChartModifier>.() -> Unit) {
-    CollectionContext<IChartModifier>(chartModifiers, context).apply(init)
-}
-
-fun <TBuilder : AnimatorBuilderBase.RenderPassDataAnimatorBuilder<TBuilder>> sweepAnimation(builder: TBuilder, init: SweepAnimator.() -> Unit) {
-    val animator = SweepAnimator().apply(init)
-    animator(builder, animator)
-        .withSweepTransformation()
-        .start()
-}
-
-private fun <TBuilder : AnimatorBuilderBase<TBuilder>> animator(builder: TBuilder, animator: SweepAnimator): TBuilder {
-    return builder
-        .withInterpolator(animator.interpolator)
-        .withDuration(animator.duration)
-        .withStartDelay(animator.startDelay)
-}
-
-fun <T : XyRenderableSeriesBase> T.sweepAnimation(init: SweepAnimator.() -> Unit) = sweepAnimation(
-    SciChartBuilder.instance().newAnimator(this), init)
-
-
-open class SweepAnimator(var interpolator: TimeInterpolator = LinearInterpolator(), var duration: Long = 3000, var startDelay: Long = 350)
-
-
-fun SolidPenStyle(color: Long, thickness: Float = 1f): SolidPenStyle {
-    return SolidPenStyle(color.toInt(), thickness)
-}
-
-fun Float.toDip(): Float {
-    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, Resources.getSystem().displayMetrics)
-}
-
-fun SolidPenStyle(@ColorInt color: Int, thickness: Float = 1f): SolidPenStyle {
-    return SolidPenStyle(color, true, thickness.toDip(), null)
-}
-
-@Suppress("FunctionName")
-inline fun <reified TX : Comparable<TX>, reified TY : Comparable<TY>> XyDataSeries(seriesName: String? = null): XyDataSeries<TX, TY> {
-    return XyDataSeries(
-        TX::class.javaObjectType,
-        TY::class.javaObjectType
-    ).apply { this.seriesName = seriesName }
-
-}
-
-fun RenderableSeriesCollection.fastLineRenderableSeries(init: FastLineRenderableSeries.() -> Unit) { add(
-    FastLineRenderableSeries().apply(init)) }
-
-
-fun SciChartSurface.renderableSeries(init: RenderableSeriesCollection.() -> Unit) {
-    renderableSeries.init()
-}
-
-fun CollectionContext<IAxis>.numericAxis(init: NumericAxis.() -> Unit = {}) = collection.add(
-    NumericAxis(context).apply(init))
-fun CollectionContext<IAxis>.dateAxis(init: DateAxis.() -> Unit = {}) = collection.add(DateAxis(context).apply(init))
-
-
-inline fun <T : ISuspendable> T.suspendUpdates(crossinline block: T.() -> Unit) {
-    UpdateSuspender.using(this) {
-        block()
-    }
-}
-
-data class CollectionContext<T>(val collection: ObservableCollection<T>, val context: Context)
-
-fun SciChartSurface.xAxes(clearCollection: Boolean = false, init: CollectionContext<IAxis>.() -> Unit) {
-    if (clearCollection) xAxes.clear()
-    CollectionContext<IAxis>(xAxes, context).init()
-}
-fun SciChartSurface.yAxes(clearCollection: Boolean = false, init: CollectionContext<IAxis>.() -> Unit) {
-    if (clearCollection) yAxes.clear()
-    CollectionContext<IAxis>(yAxes, context).init()
-}
