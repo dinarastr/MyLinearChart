@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -42,7 +43,6 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
@@ -60,4 +60,8 @@ dependencies {
     implementation(group= "com.scichart.library", name= "extensions", version = "3.0.0.4253", ext= "aar")
     implementation(group= "com.scichart.library", name= "extensions3d", version= "3.0.0.4253", ext= "aar")
     //end of SciChart dependencies region
+
+    //Dagger2
+    implementation("com.google.dagger:dagger:2.46.1")
+    kapt("com.google.dagger:dagger-compiler:2.46.1")
 }

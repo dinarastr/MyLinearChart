@@ -5,22 +5,15 @@ import android.content.Context
 import android.content.res.Resources
 import android.os.Bundle
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.Interpolator
 import android.view.animation.LinearInterpolator
 import androidx.annotation.ColorInt
 import androidx.fragment.app.Fragment
 import com.scichart.charting.model.RenderableSeriesCollection
 import com.scichart.charting.model.dataSeries.XyDataSeries
 import com.scichart.charting.modifiers.IChartModifier
-import com.scichart.charting.modifiers.ModifierGroup
-import com.scichart.charting.modifiers.PinchZoomModifier
-import com.scichart.charting.modifiers.ZoomExtentsModifier
-import com.scichart.charting.modifiers.ZoomPanModifier
 import com.scichart.charting.visuals.SciChartSurface
 import com.scichart.charting.visuals.axes.AutoRange
 import com.scichart.charting.visuals.axes.DateAxis
@@ -30,7 +23,6 @@ import com.scichart.charting.visuals.renderableSeries.FastLineRenderableSeries
 import com.scichart.charting.visuals.renderableSeries.XyRenderableSeriesBase
 import com.scichart.core.framework.ISuspendable
 import com.scichart.core.framework.UpdateSuspender
-import com.scichart.core.model.DoubleValues
 import com.scichart.core.observable.ObservableCollection
 import com.scichart.data.model.DoubleRange
 import com.scichart.drawing.common.SolidPenStyle
@@ -40,7 +32,6 @@ import ru.dinarastepina.myapplication.databinding.FragmentLinearChartBinding
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import kotlin.math.cos
 import kotlin.math.sin
 
 class LinearChartFragment : Fragment() {
