@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ import com.scichart.charting.modifiers.PinchZoomModifier
 import com.scichart.charting.modifiers.ZoomExtentsModifier
 import com.scichart.charting.modifiers.ZoomPanModifier
 import com.scichart.charting.visuals.SciChartSurface
+import com.scichart.charting.visuals.axes.AutoRange
 import com.scichart.charting.visuals.axes.DateAxis
 import com.scichart.charting.visuals.axes.IAxis
 import com.scichart.charting.visuals.axes.NumericAxis
@@ -35,12 +37,21 @@ import com.scichart.drawing.common.SolidPenStyle
 import com.scichart.extensions.builders.AnimatorBuilderBase
 import com.scichart.extensions.builders.SciChartBuilder
 import ru.dinarastepina.myapplication.databinding.FragmentLinearChartBinding
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import kotlin.math.cos
+import kotlin.math.sin
 
 class LinearChartFragment : Fragment() {
 
     private var _vb: FragmentLinearChartBinding? = null
     private val vb: FragmentLinearChartBinding
         get() = _vb!!
+
+    private val ds1 = XyDataSeries<Double, Double>().apply { seriesName = "Orange Series"; fifoCapacity = FIFO_CAPACITY }
+    private val scheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
+    private lateinit var schedule: ScheduledFuture<*>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,77 +65,49 @@ class LinearChartFragment : Fragment() {
         SciChartBuilder.init(context);
 
 
-        val series: DoubleSeries = DoubleSeries(5000)
-        (1..5000).forEach {
-            series.add(it.toDouble(), it.toDouble())
-        }
-
         vb.chartView.suspendUpdates {
-            xAxes { numericAxis { visibleRange = DoubleRange(1.0, 5000.0) } }
-            yAxes { numericAxis { growBy = DoubleRange(1.0, 100.0) } }
+            xAxes { numericAxis  {
+                autoRange = AutoRange.Always
+                axisTitle = "Time (Seconds)"
+                textFormatting = "0.0"
+            }}
+            yAxes { numericAxis  {
+                autoRange = AutoRange.Always
+                axisTitle = "Amplitude (Numbers)"
+                textFormatting = "0.0"
+                cursorTextFormatting = "0.00"
+                growBy = DoubleRange(0.1, 0.1)
+            }}
             renderableSeries {
-                fastLineRenderableSeries {
-                    dataSeries = XyDataSeries<Double, Double>().apply {
-                        append(series.xValues, series.yValues)
-                    }
-                    strokeStyle = SolidPenStyle(0xFFAE418D, 3f)
-
-                    sweepAnimation {
-                        duration = Constant.ANIMATION_DURATION
-                        startDelay = Constant.ANIMATION_START_DELAY
-                        interpolator = DefaultInterpolator.interpolator
-                    }
-                }
+                fastLineRenderableSeries { dataSeries = ds1; strokeStyle = SolidPenStyle(0xFFe97064, 2f) }
             }
-            chartModifiers { defaultModifiers() }
         }
+        schedule = scheduledExecutorService.scheduleWithFixedDelay(insertRunnable, 0, TIME_INTERVAL, TimeUnit.MILLISECONDS)
+    }
 
+    var t = 0.0
+    private val insertRunnable = Runnable {
+        vb.chartView.suspendUpdates {
+            val y1 = 3.0 * sin(2 * Math.PI * 1.4 * t * 0.02)
+            ds1.append(t, y1)
+            t += TIME_INTERVAL / 1000.0
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        schedule.cancel(true)
         _vb = null
     }
-}
 
-class DoubleSeries(capacity: Int) {
-    val xValues: DoubleValues
-    val yValues: DoubleValues
-
-    init {
-        xValues = DoubleValues(capacity)
-        yValues = DoubleValues(capacity)
-    }
-
-    fun add(x: Double, y: Double) {
-        xValues.add(x)
-        yValues.add(y)
+    companion object {
+        private const val FIFO_CAPACITY = 100
+        private const val TIME_INTERVAL: Long = 1000
     }
 }
+
 fun SciChartSurface.chartModifiers(init: CollectionContext<IChartModifier>.() -> Unit) {
     CollectionContext<IChartModifier>(chartModifiers, context).apply(init)
-}
-
-fun CollectionContext<IChartModifier>.defaultModifiers() {
-    val modifierGroup = ModifierGroup().apply {
-        childModifiers.add(PinchZoomModifier())
-        childModifiers.add(ZoomPanModifier().apply { receiveHandledEvents = true })
-        childModifiers.add(ZoomExtentsModifier())
-    }
-    collection.add(modifierGroup)
-}
-
-object DefaultInterpolator {
-    val interpolator: Interpolator
-        get() = AccelerateDecelerateInterpolator() //new DecelerateInterpolator();
-}
-
-class Constant {
-
-    companion object{
-        const val ANIMATION_DURATION = 1000L
-        const val ANIMATION_START_DELAY = 50L
-    }
 }
 
 fun <TBuilder : AnimatorBuilderBase.RenderPassDataAnimatorBuilder<TBuilder>> sweepAnimation(builder: TBuilder, init: SweepAnimator.() -> Unit) {
