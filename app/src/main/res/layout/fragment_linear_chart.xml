@@ -5,10 +5,11 @@
     android:layout_height="match_parent"
     tools:context=".presentation.linearChart.LinearChartFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <com.scichart.charting.visuals.SciChartSurface
         android:layout_width="match_parent"
+        android:layout_margin="8dp"
+        android:id="@+id/chartView"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        />
 
 </FrameLayout>
