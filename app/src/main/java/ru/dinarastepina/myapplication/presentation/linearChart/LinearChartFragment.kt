@@ -1,5 +1,6 @@
 package ru.dinarastepina.myapplication.presentation.linearChart
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,17 +34,21 @@ class LinearChartFragment : Fragment() {
     private val vb: FragmentLinearChartBinding
         get() = _vb!!
 
+    private val vm: LinearChartVM by viewModels { viewModelFactory }
+
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
     private val component by lazy {
         (requireActivity().application as MyChartApp).component
     }
 
-    private val vm: LinearChartVM by viewModels { viewModelFactory }
 
     private val ds1 = XyDataSeries<Double, Double>().apply { seriesName = "Orange Series"; fifoCapacity = FIFO_CAPACITY }
-    private val scheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
-    private lateinit var schedule: ScheduledFuture<*>
+
+    override fun onAttach(context: Context) {
+        component.inject(this)
+        super.onAttach(context)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -71,25 +76,17 @@ class LinearChartFragment : Fragment() {
                 growBy = DoubleRange(0.1, 0.1)
             }}
             renderableSeries {
-                fastLineRenderableSeries {
-                    dataSeries = ds1; strokeStyle = SolidPenStyle(0xFFe97064, 2f) }
+                if (vm.data.value is ChartState.Content) {
+                    fastLineRenderableSeries {
+                        dataSeries = (vm.data.value as ChartState.Content).dataSeries; strokeStyle = SolidPenStyle(0xFFe97064, 2f)
+                    }
+                }
             }
-        }
-        schedule = scheduledExecutorService.scheduleWithFixedDelay(insertRunnable, 0, TIME_INTERVAL, TimeUnit.MILLISECONDS)
-    }
-
-    var t = 0.0
-    private val insertRunnable = Runnable {
-        vb.chartView.suspendUpdates {
-            val y1 = 3.0 * sin(2 * Math.PI * 1.4 * t * 0.02)
-            ds1.append(t, y1)
-            t += TIME_INTERVAL / 1000.0
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        schedule.cancel(true)
         _vb = null
     }
 

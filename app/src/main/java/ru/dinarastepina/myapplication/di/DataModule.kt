@@ -9,6 +9,5 @@ import ru.dinarastepina.myapplication.domain.IChartRepository
 interface DataModule {
 
     @Binds
-    @ChartScope
     fun bindChartRepository(chartRepository: ChartRepository): IChartRepository
 }

@@ -1,5 +1,6 @@
 package ru.dinarastepina.myapplication.di
 
+import androidx.lifecycle.ViewModel
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -12,5 +13,5 @@ interface VMModule {
     @Binds
     @IntoMap
     @ViewModelKey(LinearChartVM::class)
-    fun bindLinearChartVM(linearChartVM: LinearChartVM): LinearChartVM
+    fun bindLinearChartVM(linearChartVM: LinearChartVM): ViewModel
 }
