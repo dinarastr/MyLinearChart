@@ -7,7 +7,10 @@ import ru.dinarastepina.myapplication.presentation.linearChart.LinearChartFragme
 
 
 @ChartScope
-@Component(modules = [DataModule::class, VMModule::class])
+@Component(modules = [
+    DataModule::class,
+    VMModule::class
+])
 interface ChartComponent {
 
     fun inject(fragment: LinearChartFragment)

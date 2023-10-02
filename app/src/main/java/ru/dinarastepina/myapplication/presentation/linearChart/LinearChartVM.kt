@@ -3,6 +3,8 @@ package ru.dinarastepina.myapplication.presentation.linearChart
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scichart.charting.model.dataSeries.XyDataSeries
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +17,7 @@ import ru.dinarastepina.myapplication.presentation.utils.XyDataSeries
 import javax.inject.Inject
 
 class LinearChartVM @Inject constructor(
-    private val getChartDataInteractor: GetChartDataInteractor
+    private val getChartDataInteractor: GetChartDataInteractor,
 ) : ViewModel() {
 
 

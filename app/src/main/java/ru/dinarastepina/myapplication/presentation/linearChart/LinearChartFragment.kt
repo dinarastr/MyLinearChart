@@ -14,16 +14,12 @@ import com.scichart.charting.ClipMode
 import com.scichart.charting.Direction2D
 import com.scichart.charting.model.dataSeries.XyDataSeries
 import com.scichart.charting.modifiers.XAxisDragModifier
-import com.scichart.charting.modifiers.YAxisDragModifier
 import com.scichart.charting.visuals.SciChartSurface
 import com.scichart.charting.visuals.annotations.LabelPlacement
-import com.scichart.charting.visuals.axes.AutoRange
 import com.scichart.charting.visuals.renderableSeries.FastLineRenderableSeries
 import com.scichart.data.model.DoubleRange
 import com.scichart.extensions.builders.SciChartBuilder
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.dinarastepina.myapplication.MyChartApp
 import ru.dinarastepina.myapplication.databinding.FragmentLinearChartBinding
@@ -43,8 +39,6 @@ import ru.dinarastepina.myapplication.presentation.utils.sweepAnimation
 import ru.dinarastepina.myapplication.presentation.utils.xAxes
 import ru.dinarastepina.myapplication.presentation.utils.xAxisDragModifier
 import ru.dinarastepina.myapplication.presentation.utils.yAxes
-import ru.dinarastepina.myapplication.presentation.utils.yAxisDragModifier
-import ru.dinarastepina.myapplication.presentation.utils.zoomExtentsModifier
 import ru.dinarastepina.myapplication.presentation.utils.zoomPanModifier
 import javax.inject.Inject
 
@@ -130,7 +124,7 @@ class LinearChartFragment : Fragment() {
                         addSweepAnimation()
                     }
             }
-            addLatestPointAnnotation(
+            addRealTimeAnnotation(
                 vm.latestPoint
             )
             addModifiers()
@@ -159,7 +153,7 @@ class LinearChartFragment : Fragment() {
         }
     }
 
-    private fun SciChartSurface.addLatestPointAnnotation(latestPoint: StateFlow<Point>) {
+    private fun SciChartSurface.addRealTimeAnnotation(latestPoint: StateFlow<Point>) {
         annotations {
             horizontalLineAnnotation {
                 lifecycleScope.launch {
