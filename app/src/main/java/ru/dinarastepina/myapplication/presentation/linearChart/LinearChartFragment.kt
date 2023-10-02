@@ -1,7 +1,9 @@
 package ru.dinarastepina.myapplication.presentation.linearChart
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +27,15 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import androidx.fragment.app.*
 import androidx.lifecycle.lifecycleScope
+import com.scichart.charting.visuals.annotations.AnnotationCoordinateMode
+import com.scichart.charting.visuals.annotations.AnnotationLabel
+import com.scichart.charting.visuals.annotations.HorizontalLineAnnotation
+import com.scichart.charting.visuals.annotations.LabelPlacement
+import ru.dinarastepina.myapplication.presentation.utils.annotationLabel
+import ru.dinarastepina.myapplication.presentation.utils.annotationLabels
+import ru.dinarastepina.myapplication.presentation.utils.annotations
+import ru.dinarastepina.myapplication.presentation.utils.horizontalLineAnnotation
+import java.util.Collections
 import javax.inject.Inject
 import kotlin.math.sin
 
@@ -41,9 +52,6 @@ class LinearChartFragment : Fragment() {
     private val component by lazy {
         (requireActivity().application as MyChartApp).component
     }
-
-
-    private val ds1 = XyDataSeries<Double, Double>().apply { seriesName = "Orange Series"; fifoCapacity = FIFO_CAPACITY }
 
     override fun onAttach(context: Context) {
         component.inject(this)
@@ -79,6 +87,20 @@ class LinearChartFragment : Fragment() {
                 if (vm.data.value is ChartState.Content) {
                     fastLineRenderableSeries {
                         dataSeries = (vm.data.value as ChartState.Content).dataSeries; strokeStyle = SolidPenStyle(0xFFe97064, 2f)
+                    }
+                }
+            }
+            annotations {
+                horizontalLineAnnotation {
+                    x1 = 7.0; y1 = 2.8
+                    horizontalGravity = Gravity.END
+                    stroke = SolidPenStyle(
+                        0xFF47bde6,
+                        2f)
+                    annotationLabels {
+                        annotationLabel {
+                            labelPlacement = LabelPlacement.Axis
+                        }
                     }
                 }
             }
