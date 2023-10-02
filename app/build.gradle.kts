@@ -56,10 +56,8 @@ dependencies {
     implementation(group = "com.scichart.library", name = "core", version= "3.0.0.4253", ext= "aar")
     implementation(group= "com.scichart.library", name="data", version="3.0.0.4253", ext= "aar")
     implementation(group= "com.scichart.library", name= "drawing", version= "3.0.0.4253", ext= "aar")
-    implementation(group= "com.scichart.library", name= "charting3d", version="3.0.0.4253", ext="aar")
     implementation(group= "com.scichart.library", name= "charting", version= "3.0.0.4253", ext= "aar")
     implementation(group= "com.scichart.library", name= "extensions", version = "3.0.0.4253", ext= "aar")
-    implementation(group= "com.scichart.library", name= "extensions3d", version= "3.0.0.4253", ext= "aar")
     //end of SciChart dependencies region
 
     //Dagger2
