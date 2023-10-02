@@ -23,10 +23,15 @@ class LinearChartVM @Inject constructor(
     val state
         get() = _state.asStateFlow()
 
-    private val series: XyDataSeries<Double, Double> =
+    private val _series: XyDataSeries<Double, Double> =
         XyDataSeries<Double, Double>().apply {
             acceptsUnsortedData = true
         }
+
+    private val _xMinMax: MutableStateFlow<Pair<Double, Double>> =
+        MutableStateFlow(Pair(0.0, 0.0))
+    val xMinMax
+        get() = _xMinMax.asStateFlow()
 
     private val _latestPoint: MutableStateFlow<Point> =
         MutableStateFlow(Point(0.0, 0.0))
@@ -43,12 +48,13 @@ class LinearChartVM @Inject constructor(
                     _state.value = ChartState.Error
                 }
                 .collect {
-                    series.append(
+                    _series.append(
                         it.second, it.first
                     )
+                    _xMinMax.value = _series.yMin to _series.yMax
                     _latestPoint.value = it
                     _state.value = ChartState.Content(
-                        dataSeries = series
+                        dataSeries = _series
                     )
                 }
         }

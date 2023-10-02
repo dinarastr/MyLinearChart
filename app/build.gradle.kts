@@ -64,6 +64,6 @@ dependencies {
     implementation("com.google.dagger:dagger:2.46.1")
     kapt("com.google.dagger:dagger-compiler:2.46.1")
 
-    //Viewmodel scope
+    //lifecycle scopes
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
 }

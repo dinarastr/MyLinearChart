@@ -15,7 +15,6 @@ class ChartRepository @Inject constructor(): IChartRepository {
             while(true) {
                 emit(seed.toDouble() to time)
                 val next = Random.nextInt(-1, 2)
-                println(seed)
                 seed += next
                 time++
                 delay(TIME_INTERVAL)

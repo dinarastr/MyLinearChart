@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.scichart.charting.ClipMode
+import com.scichart.charting.Direction2D
 import com.scichart.charting.model.dataSeries.XyDataSeries
 import com.scichart.charting.modifiers.XAxisDragModifier
 import com.scichart.charting.modifiers.YAxisDragModifier
@@ -21,6 +22,8 @@ import com.scichart.charting.visuals.renderableSeries.FastLineRenderableSeries
 import com.scichart.data.model.DoubleRange
 import com.scichart.extensions.builders.SciChartBuilder
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.dinarastepina.myapplication.MyChartApp
 import ru.dinarastepina.myapplication.databinding.FragmentLinearChartBinding
@@ -33,6 +36,7 @@ import ru.dinarastepina.myapplication.presentation.utils.chartModifiers
 import ru.dinarastepina.myapplication.presentation.utils.fastLineRenderableSeries
 import ru.dinarastepina.myapplication.presentation.utils.horizontalLineAnnotation
 import ru.dinarastepina.myapplication.presentation.utils.numericAxis
+import ru.dinarastepina.myapplication.presentation.utils.pinchZoomModifier
 import ru.dinarastepina.myapplication.presentation.utils.renderableSeries
 import ru.dinarastepina.myapplication.presentation.utils.suspendUpdates
 import ru.dinarastepina.myapplication.presentation.utils.sweepAnimation
@@ -59,8 +63,6 @@ class LinearChartFragment : Fragment() {
     }
 
     private lateinit var xAxisDragModifier: XAxisDragModifier
-    private lateinit var yAxisDragModifier: YAxisDragModifier
-
 
     override fun onAttach(context: Context) {
         component.inject(this)
@@ -109,18 +111,22 @@ class LinearChartFragment : Fragment() {
             }
             yAxes {
                 numericAxis {
-                    autoRange = AutoRange.Always
+                    lifecycleScope.launch {
+                        vm.xMinMax.collect {
+                            visibleRange = DoubleRange(it.first - 10.0, it.second + 10.0)
+                        }
+                    }
                     axisTitle = "Amplitude (Numbers)"
                     textFormatting = "0.0"
                     cursorTextFormatting = "0.00"
                     growBy = DoubleRange(1.0, 1.0)
                 }
             }
+            zoomExtentsY()
             renderableSeries {
                     fastLineRenderableSeries {
                         dataSeries = xyDataSeries; strokeStyle =
                         SolidPenStyle(0xFFe97064, 2f)
-
                         addSweepAnimation()
                     }
             }
@@ -133,8 +139,8 @@ class LinearChartFragment : Fragment() {
 
     private fun FastLineRenderableSeries.addSweepAnimation() {
         sweepAnimation {
-            duration = 1000
-            startDelay = 50
+            duration = ANIMATION_DELAY
+            startDelay = START_DELAY
             interpolator = AccelerateDecelerateInterpolator()
         }
     }
@@ -142,9 +148,14 @@ class LinearChartFragment : Fragment() {
     private fun SciChartSurface.addModifiers() {
         chartModifiers {
             xAxisDragModifier { clipModeX = ClipMode.ClipAtMin; xAxisDragModifier = this }
-            yAxisDragModifier { yAxisDragModifier = this }
-            zoomPanModifier { receiveHandledEvents = true }
-            zoomExtentsModifier()
+            zoomPanModifier(
+                direction2D = Direction2D.XDirection
+            ) {
+                receiveHandledEvents = true
+            }
+            pinchZoomModifier(
+                direction2D = Direction2D.XDirection
+            ) { receiveHandledEvents = true }
         }
     }
 
@@ -174,6 +185,11 @@ class LinearChartFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         _vb = null
+    }
+
+    companion object {
+        private const val ANIMATION_DELAY = 1000L
+        private const val START_DELAY = 50L
     }
 }
 
