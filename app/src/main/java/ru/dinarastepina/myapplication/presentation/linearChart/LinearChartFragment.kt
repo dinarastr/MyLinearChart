@@ -7,6 +7,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.fragment.app.Fragment
 import com.scichart.charting.visuals.axes.AutoRange
 import com.scichart.data.model.DoubleRange
@@ -27,6 +28,9 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import androidx.fragment.app.*
 import androidx.lifecycle.lifecycleScope
+import com.scichart.charting.ClipMode
+import com.scichart.charting.modifiers.XAxisDragModifier
+import com.scichart.charting.modifiers.YAxisDragModifier
 import com.scichart.charting.visuals.annotations.AnnotationCoordinateMode
 import com.scichart.charting.visuals.annotations.AnnotationLabel
 import com.scichart.charting.visuals.annotations.HorizontalLineAnnotation
@@ -34,7 +38,13 @@ import com.scichart.charting.visuals.annotations.LabelPlacement
 import ru.dinarastepina.myapplication.presentation.utils.annotationLabel
 import ru.dinarastepina.myapplication.presentation.utils.annotationLabels
 import ru.dinarastepina.myapplication.presentation.utils.annotations
+import ru.dinarastepina.myapplication.presentation.utils.chartModifiers
 import ru.dinarastepina.myapplication.presentation.utils.horizontalLineAnnotation
+import ru.dinarastepina.myapplication.presentation.utils.sweepAnimation
+import ru.dinarastepina.myapplication.presentation.utils.xAxisDragModifier
+import ru.dinarastepina.myapplication.presentation.utils.yAxisDragModifier
+import ru.dinarastepina.myapplication.presentation.utils.zoomExtentsModifier
+import ru.dinarastepina.myapplication.presentation.utils.zoomPanModifier
 import java.util.Collections
 import javax.inject.Inject
 import kotlin.math.sin
@@ -52,6 +62,10 @@ class LinearChartFragment : Fragment() {
     private val component by lazy {
         (requireActivity().application as MyChartApp).component
     }
+
+    private lateinit var xAxisDragModifier: XAxisDragModifier
+    private lateinit var yAxisDragModifier: YAxisDragModifier
+
 
     override fun onAttach(context: Context) {
         component.inject(this)
@@ -87,8 +101,21 @@ class LinearChartFragment : Fragment() {
                 if (vm.data.value is ChartState.Content) {
                     fastLineRenderableSeries {
                         dataSeries = (vm.data.value as ChartState.Content).dataSeries; strokeStyle = SolidPenStyle(0xFFe97064, 2f)
+
+                        sweepAnimation {
+                            duration = 1000
+                            startDelay = 50
+                            interpolator = AccelerateDecelerateInterpolator()
+                        }
                     }
                 }
+            }
+
+            chartModifiers {
+                xAxisDragModifier { clipModeX = ClipMode.None; xAxisDragModifier = this }
+                yAxisDragModifier { yAxisDragModifier = this }
+                zoomPanModifier { receiveHandledEvents = true }
+                zoomExtentsModifier()
             }
             annotations {
                 horizontalLineAnnotation {
@@ -96,7 +123,8 @@ class LinearChartFragment : Fragment() {
                     horizontalGravity = Gravity.END
                     stroke = SolidPenStyle(
                         0xFF47bde6,
-                        2f)
+                        2f
+                    )
                     annotationLabels {
                         annotationLabel {
                             labelPlacement = LabelPlacement.Axis
