@@ -28,8 +28,8 @@ class LinearChartVM @Inject constructor(
             acceptsUnsortedData = true
         }
 
-    private val _latestPoint: MutableStateFlow<Pair<Double, Double>> =
-        MutableStateFlow(Pair(0.0, 0.0))
+    private val _latestPoint: MutableStateFlow<Point> =
+        MutableStateFlow(Point(0.0, 0.0))
     val latestPoint
         get() = _latestPoint.asStateFlow()
 

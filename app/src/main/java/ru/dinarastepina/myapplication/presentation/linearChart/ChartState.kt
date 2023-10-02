@@ -9,3 +9,5 @@ sealed class ChartState {
         val dataSeries: XyDataSeries<Double, Double>
     ) : ChartState()
 }
+
+typealias Point = Pair<Double, Double>

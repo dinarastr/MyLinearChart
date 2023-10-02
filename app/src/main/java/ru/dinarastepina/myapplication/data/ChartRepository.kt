@@ -18,8 +18,12 @@ class ChartRepository @Inject constructor(): IChartRepository {
                 println(seed)
                 seed += next
                 time++
-                delay(1000)
+                delay(TIME_INTERVAL)
             }
         }
+    }
+
+    companion object {
+        private const val TIME_INTERVAL: Long = 1000
     }
 }
