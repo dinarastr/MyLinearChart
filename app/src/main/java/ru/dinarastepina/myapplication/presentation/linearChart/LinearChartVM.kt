@@ -20,7 +20,9 @@ class LinearChartVM @Inject constructor(
 
     val data: MutableStateFlow<ChartState> = MutableStateFlow(ChartState.Loading)
     private val series: XyDataSeries<Double, Double> =
-        XyDataSeries()
+        XyDataSeries<Double, Double>().apply {
+            acceptsUnsortedData = true
+        }
 
     init {
         viewModelScope.launch {
@@ -33,7 +35,7 @@ class LinearChartVM @Inject constructor(
                 }
                 .collect {
                     series.append(
-                        it, it
+                        it.second, it.first
                     )
                 data.value = ChartState.Content(
                     dataSeries = series

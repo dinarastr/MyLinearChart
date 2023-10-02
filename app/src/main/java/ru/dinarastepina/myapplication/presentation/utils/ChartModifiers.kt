@@ -22,7 +22,4 @@ fun CollectionContext<IChartModifier>.zoomExtentsModifier(init: ZoomExtentsModif
     ZoomExtentsModifier().apply(
         init
     )
-        .apply {
-            direction = Direction2D.YDirection
-        }
 )

@@ -86,16 +86,17 @@ class LinearChartFragment : Fragment() {
 
         vb.chartView.suspendUpdates {
             xAxes { numericAxis  {
-                autoRange = AutoRange.Always
+                //autoRange = AutoRange.Always
                 axisTitle = "Time (Seconds)"
                 textFormatting = "0.0"
+                growBy = DoubleRange(1.0, 1.0)
             }}
             yAxes { numericAxis  {
-                autoRange = AutoRange.Always
+               autoRange = AutoRange.Always
                 axisTitle = "Amplitude (Numbers)"
                 textFormatting = "0.0"
                 cursorTextFormatting = "0.00"
-                growBy = DoubleRange(0.1, 0.1)
+                growBy = DoubleRange(1.0, 1.0)
             }}
             renderableSeries {
                 if (vm.data.value is ChartState.Content) {
