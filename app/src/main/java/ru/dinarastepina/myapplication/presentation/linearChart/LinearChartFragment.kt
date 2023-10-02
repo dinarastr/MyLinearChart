@@ -29,12 +29,14 @@ import java.util.concurrent.TimeUnit
 import androidx.fragment.app.*
 import androidx.lifecycle.lifecycleScope
 import com.scichart.charting.ClipMode
+import com.scichart.charting.model.dataSeries.XyDataSeries
 import com.scichart.charting.modifiers.XAxisDragModifier
 import com.scichart.charting.modifiers.YAxisDragModifier
 import com.scichart.charting.visuals.annotations.AnnotationCoordinateMode
 import com.scichart.charting.visuals.annotations.AnnotationLabel
 import com.scichart.charting.visuals.annotations.HorizontalLineAnnotation
 import com.scichart.charting.visuals.annotations.LabelPlacement
+import kotlinx.coroutines.launch
 import ru.dinarastepina.myapplication.presentation.utils.annotationLabel
 import ru.dinarastepina.myapplication.presentation.utils.annotationLabels
 import ru.dinarastepina.myapplication.presentation.utils.annotations
@@ -83,25 +85,43 @@ class LinearChartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         SciChartBuilder.init(context);
 
+        when (val state = vm.state.value) {
+            is ChartState.Loading -> {
+               //show a progress bar
+            }
+            is ChartState.Error -> {
+                //add error annotations so that users could still see already loaded data
+            }
+            is ChartState.Content -> {
+               setUpChart(state.dataSeries)
+            }
+        }
+    }
 
+
+
+    private fun setUpChart(xyDataSeries: XyDataSeries<Double, Double>) {
         vb.chartView.suspendUpdates {
-            xAxes { numericAxis  {
-                //autoRange = AutoRange.Always
-                axisTitle = "Time (Seconds)"
-                textFormatting = "0.0"
-                growBy = DoubleRange(1.0, 1.0)
-            }}
-            yAxes { numericAxis  {
-               autoRange = AutoRange.Always
-                axisTitle = "Amplitude (Numbers)"
-                textFormatting = "0.0"
-                cursorTextFormatting = "0.00"
-                growBy = DoubleRange(1.0, 1.0)
-            }}
+            xAxes {
+                numericAxis {
+                    axisTitle = "Time (Seconds)"
+                    textFormatting = "0.0"
+                    growBy = DoubleRange(1.0, 1.0)
+                }
+            }
+            yAxes {
+                numericAxis {
+                    autoRange = AutoRange.Always
+                    axisTitle = "Amplitude (Numbers)"
+                    textFormatting = "0.0"
+                    cursorTextFormatting = "0.00"
+                    growBy = DoubleRange(1.0, 1.0)
+                }
+            }
             renderableSeries {
-                if (vm.data.value is ChartState.Content) {
                     fastLineRenderableSeries {
-                        dataSeries = (vm.data.value as ChartState.Content).dataSeries; strokeStyle = SolidPenStyle(0xFFe97064, 2f)
+                        dataSeries = xyDataSeries; strokeStyle =
+                        SolidPenStyle(0xFFe97064, 2f)
 
                         sweepAnimation {
                             duration = 1000
@@ -109,18 +129,22 @@ class LinearChartFragment : Fragment() {
                             interpolator = AccelerateDecelerateInterpolator()
                         }
                     }
-                }
             }
 
             chartModifiers {
-                xAxisDragModifier { clipModeX = ClipMode.None; xAxisDragModifier = this }
+                xAxisDragModifier { clipModeX = ClipMode.ClipAtMin; xAxisDragModifier = this }
                 yAxisDragModifier { yAxisDragModifier = this }
                 zoomPanModifier { receiveHandledEvents = true }
                 zoomExtentsModifier()
             }
             annotations {
                 horizontalLineAnnotation {
-                    x1 = 7.0; y1 = 2.8
+                    lifecycleScope.launch {
+                        vm.latestPoint.collect {
+                            x1 = vm.latestPoint.value.second;
+                            y1 = vm.latestPoint.value.first
+                        }
+                    }
                     horizontalGravity = Gravity.END
                     stroke = SolidPenStyle(
                         0xFF47bde6,

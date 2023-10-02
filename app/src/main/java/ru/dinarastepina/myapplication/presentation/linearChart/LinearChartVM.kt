@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.scichart.charting.model.dataSeries.XyDataSeries
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
@@ -15,32 +16,41 @@ import javax.inject.Inject
 
 class LinearChartVM @Inject constructor(
     private val getChartDataInteractor: GetChartDataInteractor
-): ViewModel() {
+) : ViewModel() {
 
 
-    val data: MutableStateFlow<ChartState> = MutableStateFlow(ChartState.Loading)
+    private val _state: MutableStateFlow<ChartState> = MutableStateFlow(ChartState.Loading)
+    val state
+        get() = _state.asStateFlow()
+
     private val series: XyDataSeries<Double, Double> =
         XyDataSeries<Double, Double>().apply {
             acceptsUnsortedData = true
         }
 
+    private val _latestPoint: MutableStateFlow<Pair<Double, Double>> =
+        MutableStateFlow(Pair(0.0, 0.0))
+    val latestPoint
+        get() = _latestPoint.asStateFlow()
+
     init {
         viewModelScope.launch {
             getChartDataInteractor()
                 .onStart {
-                    data.value = ChartState.Loading
+                    _state.value = ChartState.Loading
                 }
                 .catch {
-                    data.value = ChartState.Error
+                    _state.value = ChartState.Error
                 }
                 .collect {
                     series.append(
                         it.second, it.first
                     )
-                data.value = ChartState.Content(
-                    dataSeries = series
-                )
-            }
+                    _latestPoint.value = it
+                    _state.value = ChartState.Content(
+                        dataSeries = series
+                    )
+                }
         }
     }
 }
